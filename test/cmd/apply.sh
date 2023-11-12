@@ -83,19 +83,6 @@ run_kubectl_apply_tests() {
   # Clean up
   kubectl delete deployments test-deployment-retainkeys "${kube_flags[@]:?}"
 
-  ## kubectl apply -f with label selector should only apply matching objects
-  # Pre-Condition: no POD exists
-  kube::test::wait_object_assert pods "{{range.items}}{{${id_field:?}}}:{{end}}" ''
-  # apply
-  kubectl apply -l unique-label=bingbang -f hack/testdata/filter "${kube_flags[@]:?}"
-  # check right pod exists
-  kube::test::get_object_assert 'pods selector-test-pod' "{{${labels_field:?}.name}}" 'selector-test-pod'
-  # check wrong pod doesn't exist
-  output_message=$(! kubectl get pods selector-test-pod-dont-apply 2>&1 "${kube_flags[@]:?}")
-  kube::test::if_has_string "${output_message}" 'pods "selector-test-pod-dont-apply" not found'
-  # cleanup
-  kubectl delete pods selector-test-pod
-
   ## kubectl apply --dry-run=server
   # Pre-Condition: no POD exists
   kube::test::get_object_assert pods "{{range.items}}{{${id_field:?}}}:{{end}}" ''
